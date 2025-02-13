@@ -6,19 +6,22 @@ import (
 	"time"
 )
 
-func NewJWT(userID int) (string, error) {
+func NewJWT(userID int, role string) (string, error) {
 
 	claims := jwt.MapClaims{
 		"user_id": userID,
 		"exp":     time.Now().Add(time.Hour * 24).Unix(),
+		"role":    role,
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString([]byte("secret"))
 }
 
-func ParseJWT(tokenString string) (int, error) {
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+func ParseJWT(tokenString string) (map[string]interface{}, error) {
+	claims := jwt.MapClaims{}
+
+	_, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
 		// Проверяем, что алгоритм совпадает
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method")
@@ -27,14 +30,33 @@ func ParseJWT(tokenString string) (int, error) {
 	})
 
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 
-	// Декодируем claims
-	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-		userID := int(claims["user_id"].(float64))
-		return userID, nil
+	// Проверяем срок действия токена
+	exp, ok := claims["exp"].(float64)
+	if !ok {
+		return nil, fmt.Errorf("exp claim is missing")
 	}
 
-	return 0, fmt.Errorf("invalid token")
+	// Проверяем, не истек ли токен
+	if int64(exp) < time.Now().Unix() {
+		return nil, fmt.Errorf("token expired")
+	}
+
+	// Декодируем user_id и role
+	userID, ok := claims["user_id"].(float64)
+	if !ok {
+		return nil, fmt.Errorf("invalid user_id claim")
+	}
+
+	role, ok := claims["role"].(string)
+	if !ok {
+		return nil, fmt.Errorf("invalid role claim")
+	}
+
+	return map[string]interface{}{
+		"user_id": int(userID),
+		"role":    role,
+	}, nil
 }

@@ -3,7 +3,7 @@ package main
 import (
 	"awesomeProject/internal/config"
 	"awesomeProject/internal/database"
-	"awesomeProject/internal/handlers/register"
+	"awesomeProject/internal/router"
 	"github.com/gin-gonic/gin"
 )
 
@@ -12,10 +12,9 @@ func main() {
 	database.DbInit(cfg)
 
 	r := gin.Default()
-
-	r.POST("/user/register", register.LogUpUser)
-
+	router.SetupRouter(r)
 	err := r.Run(cfg.LOCAL_PORT)
+
 	if err != nil {
 		panic(err)
 	}

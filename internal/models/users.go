@@ -1,6 +1,7 @@
 package models
 
 type User struct {
+	Id       int    `json:"id"`
 	Name     string `json:"name"`
 	Age      int    `json:"age"`
 	Email    string `json:"email"`
@@ -20,4 +21,10 @@ type LogUpUser struct {
 type LogInUser struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
+}
+
+type UpdateUser struct {
+	Name  string `json:"name"  validate:"min=2"`
+	Email string `json:"email" validate:"email"`
+	Age   int    `json:"age"`
 }

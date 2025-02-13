@@ -1,4 +1,4 @@
-package register
+package logUp
 
 import (
 	"awesomeProject/internal/database"
@@ -12,9 +12,11 @@ import (
 )
 
 const (
-	admin_role  = "admin"
-	defoult     = "user"
-	admin_token = "admin_token"
+	admin_role   = "admin"
+	defoult      = "user"
+	doctor_role  = "doctor"
+	admin_token  = "admin_token"
+	doctor_token = "doctor_token"
 )
 
 func LogUpUser(ctx *gin.Context) {
@@ -35,7 +37,7 @@ func LogUpUser(ctx *gin.Context) {
 	logUpData.Roles = determinateRole(logUpData.RoleToken)
 
 	//Хэшируем пароль
-	hashPassword, err := hash.HashPassword(logUpData.Password)
+	hashPassword, err := hash.PasswordHash(logUpData.Password)
 	if err != nil {
 		slog.Error(err.Error())
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -68,6 +70,10 @@ func LogUpUser(ctx *gin.Context) {
 func determinateRole(TokenRole string) string {
 	if TokenRole == admin_token {
 		return admin_role
+	}
+
+	if TokenRole == doctor_token {
+		return doctor_role
 	}
 
 	return defoult
