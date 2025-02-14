@@ -27,7 +27,7 @@ func LogUpUser(ctx *gin.Context) {
 		return
 	}
 
-	if err := validate.ValidAndTrim(logUpData); err != nil {
+	if err := validate.ValidAndTrim(&logUpData); err != nil {
 		slog.Error(err.Error())
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

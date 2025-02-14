@@ -28,7 +28,7 @@ func LogIn(ctx *gin.Context) {
 	err := database.DB.QueryRow(query, logInData.Email).Scan(&userId, &role, &password)
 	if errors.Is(err, sql.ErrNoRows) {
 		slog.Error(err.Error())
-		ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "not logged in"})
+		ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "wrong email or password"})
 		return
 	}
 	if err != nil {
@@ -40,7 +40,7 @@ func LogIn(ctx *gin.Context) {
 	err = bcrypt.CompareHashAndPassword([]byte(password), []byte(logInData.Password))
 	if err != nil {
 		slog.Error(err.Error())
-		ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "dont have email in sistem"})
+		ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "wrong email and password"})
 		return
 	}
 
