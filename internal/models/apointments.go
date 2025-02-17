@@ -9,3 +9,7 @@ type Appointment struct {
 	AppointmentTime time.Time `json:"appointment_time" validate:"required"`
 	Status          string    `json:"status" validate:"required"`
 }
+
+type AppointmentsUpdateTime struct {
+	AppointmentTime time.Time `json:"appointment_time"`
+}
