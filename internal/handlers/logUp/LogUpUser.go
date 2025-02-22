@@ -3,8 +3,8 @@ package logUp
 import (
 	"awesomeProject/internal/database"
 	"awesomeProject/internal/models"
+	"awesomeProject/internal/repositories/user"
 	"awesomeProject/pkg/hash"
-	"awesomeProject/pkg/repositories"
 	"awesomeProject/pkg/validate"
 	"github.com/gin-gonic/gin"
 	"log/slog"

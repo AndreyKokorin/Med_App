@@ -20,8 +20,8 @@ func GetUserID(ctx *gin.Context) {
 	}
 
 	var user models.User
-	query := "SELECT id, name, age, email from users where id=$1"
-	err := database.DB.QueryRow(query, id).Scan(&user.Id, &user.Name, &user.Age, &user.Email)
+	query := "SELECT id, name, age, email,roles from users where id=$1"
+	err := database.DB.QueryRow(query, id).Scan(&user.Id, &user.Name, &user.Age, &user.Email, &user.Roles)
 	if errors.Is(err, sql.ErrNoRows) {
 		ctx.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
 		return
