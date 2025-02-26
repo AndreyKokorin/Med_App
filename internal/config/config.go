@@ -17,7 +17,7 @@ type Config struct {
 }
 
 func LoadConfig() Config {
-	err := godotenv.Load("C:\\Users\\andre\\GolandProjects\\Med_app\\config.env")
+	err := godotenv.Load("config.env")
 	if err != nil {
 		log.Fatal(err)
 	}

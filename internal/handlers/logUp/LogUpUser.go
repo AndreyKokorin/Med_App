@@ -5,9 +5,10 @@ import (
 	"awesomeProject/internal/models"
 	"awesomeProject/internal/repositories/user"
 	"awesomeProject/pkg/hash"
+	"awesomeProject/pkg/helps"
 	"awesomeProject/pkg/validate"
+	"errors"
 	"github.com/gin-gonic/gin"
-	"log/slog"
 	"net/http"
 )
 
@@ -21,46 +22,44 @@ const (
 
 func LogUpUser(ctx *gin.Context) {
 	var logUpData models.LogUpUser
+
+	// Decode JSON
 	if err := ctx.ShouldBindJSON(&logUpData); err != nil {
-		slog.Error(err.Error())
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		helps.RespWithError(ctx, http.StatusBadRequest, "Invalid request format", err)
 		return
 	}
 
+	// Validate input data
 	if err := validate.ValidAndTrim(&logUpData); err != nil {
-		slog.Error(err.Error())
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		helps.RespWithError(ctx, http.StatusBadRequest, "Invalid request data", err)
 		return
 	}
 
-	//задаем роль
+	// Determine user role
 	logUpData.Roles = determinateRole(logUpData.RoleToken)
 
-	//Хэшируем пароль
+	// Hash password
 	hashPassword, err := hash.PasswordHash(logUpData.Password)
 	if err != nil {
-		slog.Error(err.Error())
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		helps.RespWithError(ctx, http.StatusInternalServerError, "Password processing error", err)
 		return
 	}
 
-	//Проверяем есть ли такой пользователь в бд
+	// Check if user already exists
 	exists, err := repositories.UserExists(logUpData.Email, database.DB)
 	if err != nil {
-		slog.Error("Database error: " + err.Error())
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+		helps.RespWithError(ctx, http.StatusInternalServerError, "Database access error", err)
 		return
 	}
 	if exists {
-		ctx.JSON(http.StatusConflict, gin.H{"error": "User with this email already exists"})
+		helps.RespWithError(ctx, http.StatusConflict, "A user with this email is already registered", errors.New("email already in use"))
 		return
 	}
 
-	//Добавляем пользователя в бд
+	// Create new user
 	err = repositories.NewUser(logUpData, database.DB, hashPassword)
 	if err != nil {
-		slog.Error(err.Error())
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		helps.RespWithError(ctx, http.StatusInternalServerError, "Failed to create user", err)
 		return
 	}
 

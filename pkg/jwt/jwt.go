@@ -6,11 +6,14 @@ import (
 	"time"
 )
 
-func NewJWT(userID int, role string) (string, error) {
+const AccessTokenTTL = 5 * time.Hour
+const RefreshTokenTTL = 24 * time.Hour
+
+func NewJWT(userID int, role string, exp time.Time) (string, error) {
 
 	claims := jwt.MapClaims{
 		"user_id": userID,
-		"exp":     time.Now().Add(time.Hour * 24).Unix(),
+		"exp":     exp.Unix(),
 		"role":    role,
 	}
 

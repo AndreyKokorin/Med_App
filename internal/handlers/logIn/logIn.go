@@ -3,20 +3,20 @@ package logIn
 import (
 	"awesomeProject/internal/models"
 	repositories "awesomeProject/internal/repositories/user"
+	"awesomeProject/pkg/helps"
 	"awesomeProject/pkg/jwt"
 	"database/sql"
 	"errors"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
-	"log/slog"
 	"net/http"
+	"time"
 )
 
 func LogIn(ctx *gin.Context) {
 	loginData, err := getLoginData(ctx)
-
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		helps.RespWithError(ctx, http.StatusBadRequest, "Invalid request format", err)
 		return
 	}
 
@@ -24,30 +24,33 @@ func LogIn(ctx *gin.Context) {
 	user, err = repositories.GetUserByEmail(loginData.Email)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "wrong email or password"})
+			helps.RespWithError(ctx, http.StatusUnauthorized, "Wrong email or password", err)
 			return
 		}
 
-		slog.Error(err.Error())
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		helps.RespWithError(ctx, http.StatusInternalServerError, "Database access error", err)
 		return
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(loginData.Password))
 	if err != nil {
-		slog.Error(err.Error())
-		ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "wrong email or password"})
+		helps.RespWithError(ctx, http.StatusUnauthorized, "Wrong email or password", err)
 		return
 	}
 
-	token, err := jwt.NewJWT(user.Id, user.Roles)
+	AccessToken, err := jwt.NewJWT(user.Id, user.Roles, time.Now().Add(jwt.AccessTokenTTL))
 	if err != nil {
-		slog.Error(err.Error())
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		helps.RespWithError(ctx, http.StatusInternalServerError, "Failed to generate authentication token", err)
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{"token": token})
+	RefreshToken, err := jwt.NewJWT(user.Id, user.Roles, time.Now().Add(jwt.RefreshTokenTTL))
+	if err != nil {
+		helps.RespWithError(ctx, http.StatusInternalServerError, "Failed to generate authentication token", err)
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"Access-token": AccessToken, "Refresh-token": RefreshToken})
 }
 
 func getLoginData(ctx *gin.Context) (models.LogInUser, error) {

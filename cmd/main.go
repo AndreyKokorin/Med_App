@@ -1,6 +1,7 @@
 package main
 
 import (
+	"awesomeProject/internal/Cash"
 	"awesomeProject/internal/config"
 	"awesomeProject/internal/database"
 	repositories "awesomeProject/internal/repositories/shedules"
@@ -14,6 +15,12 @@ func main() {
 
 	// Загрузка конфигурации и инициализация базы данных
 	cfg := config.LoadConfig()
+	//подключаем кэш
+	err := Cash.InitRedis()
+	if err != nil {
+		log.Fatalf("Failed to start server: %v", err)
+	}
+	//доключаем бд
 	database.DbInit(cfg)
 
 	// Запуск фоновой задачи для обновления записей в базе данных каждые 5 секунд
@@ -34,7 +41,7 @@ func main() {
 	router.SetupRouter(r)
 
 	// Запуск сервера на указанном порту
-	err := r.Run(cfg.LOCAL_PORT)
+	err = r.Run(cfg.LOCAL_PORT)
 	if err != nil {
 		log.Fatalf("Failed to start server: %v", err)
 	}

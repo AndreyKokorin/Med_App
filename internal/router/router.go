@@ -15,22 +15,18 @@ import (
 func SetupRouter(r *gin.Engine) {
 	r.Use(Cors)
 
-	r.POST("/register", logUp.LogUpUser)
+	r.POST("/logup", logUp.LogUpUser)
 	r.POST("/login", logIn.LogIn)
-	r.GET("/appointsfilter", appointments.GetFilterAppointments)
-
-	// Группа для пользователей (только "user")
-	userGroup := r.Group("/users", middleware.AuthMiddleware("user"))
-	{
-		userGroup.GET("/:id", users.GetUserID)
-	}
+	r.POST("/sendEmailCode", users.ChangePasswordSendEmail)
+	r.POST("/changePassword", users.ChangePassword)
+	r.POST("refresh", logIn.Refresh)
 
 	// Группа для администраторов (только "admin")
 	adminGroup := r.Group("/admin", middleware.AuthMiddleware("admin"))
 	{
 		adminGroup.GET("/users", users.GetAllUsers)
 		adminGroup.DELETE("/users/:id", users.DeleteUser)
-		adminGroup.GET("/getUserFilter", users.GetFilterUsers)
+		adminGroup.GET("/users/filter", users.GetFilterUsers) // Переименовано для согласованности
 	}
 
 	// Группа для докторов ("doctor") и пользователей ("user")
@@ -46,17 +42,19 @@ func SetupRouter(r *gin.Engine) {
 	// Группа с доступом для "user", "admin", "doctor"
 	sharedGroup := r.Group("/appointments", middleware.AuthMiddleware("user", "admin", "doctor"))
 	{
-		sharedGroup.POST("/", appointments.AddAppointment)
+		sharedGroup.POST("/add", appointments.AddAppointment)
 		sharedGroup.GET("/:id", appointments.GetAppointment)
-		sharedGroup.GET("/", appointments.GetAllAppointment)
+		sharedGroup.GET("/all", appointments.GetAllAppointment) // Переименовано
 		sharedGroup.GET("/user/:id", appointments.GetUserAppointments)
 		sharedGroup.PUT("/:id/time", appointments.UpdateAppointDate)
-		sharedGroup.PUT("/:id/delete", appointments.DeleteAppointment)
-		sharedGroup.GET("doctors", users.GetAllDoctors)
+		sharedGroup.DELETE("/:id", appointments.DeleteAppointment) // Замена PUT на DELETE
+		sharedGroup.GET("/doctors", users.GetAllDoctors)
+		sharedGroup.GET("/user/:id/info", users.GetUserID) // Разрешение конфликта
+		sharedGroup.GET("/filter", appointments.GetFilterAppointments)
 	}
 
 	// Группа с доступом для "user", "admin"
-	adminUser := r.Group("/adminAndUser", middleware.AuthMiddleware("admin", "user"))
+	adminUser := r.Group("/profile", middleware.AuthMiddleware("admin", "user")) // Переименована
 	{
 		adminUser.PUT("/userUpdate/:id", users.UpdateUser)
 	}
