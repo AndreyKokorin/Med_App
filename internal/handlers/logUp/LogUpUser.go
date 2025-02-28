@@ -20,6 +20,18 @@ const (
 	doctor_token = "doctor_token"
 )
 
+// LogUpUser обрабатывает регистрацию нового пользователя
+// @Summary Регистрация нового пользователя
+// @Description Создает нового пользователя в системе на основе предоставленных данных (email, пароль, роль)
+// @Tags Аутентификация
+// @Accept json
+// @Produce json
+// @Param user body models.LogUpUser true "Данные для регистрации пользователя (email, password, RoleToken)"
+// @Success 201 {object} nil "Успешная регистрация (пустой ответ)"
+// @Failure 400 {object} map[string]string "Неверный формат запроса или данные"
+// @Failure 409 {object} map[string]string "Пользователь с таким email уже зарегистрирован"
+// @Failure 500 {object} map[string]string "Внутренняя ошибка сервера (например, ошибка базы данных или хеширования пароля)"
+// @Router /logup [post]
 func LogUpUser(ctx *gin.Context) {
 	var logUpData models.LogUpUser
 

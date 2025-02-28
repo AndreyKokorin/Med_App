@@ -13,6 +13,18 @@ type RefreshToken struct {
 	Refresh string `json:"refresh"`
 }
 
+// Refresh обновляет токен доступа на основе refresh-токена
+// @Summary Обновление токена доступа
+// @Description Обновляет токен доступа, используя предоставленный refresh-токен, и возвращает новый токен доступа
+// @Tags Аутентификация
+// @Accept json
+// @Produce json
+// @Param refresh body RefreshToken true "Refresh-токен для обновления доступа"
+// @Success 200 {object} map[string]string "Успешное обновление с новым токеном доступа"
+// @Failure 400 {object} map[string]string "Неверный формат запроса или отсутствует refresh-токен"
+// @Failure 401 {object} map[string]string "Неверный или просроченный refresh-токен"
+// @Failure 500 {object} map[string]string "Внутренняя ошибка сервера (например, ошибка генерации токена)"
+// @Router /refresh [post]
 func Refresh(ctx *gin.Context) {
 	var refresh RefreshToken
 

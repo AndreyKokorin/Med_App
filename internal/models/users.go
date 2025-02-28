@@ -28,3 +28,9 @@ type UpdateUser struct {
 	Email string `json:"email" validate:"email"`
 	Age   int    `json:"age"`
 }
+
+type СhangeData struct {
+	Code        string `json:"code"`
+	Email       string `json:"email"`
+	NewPassword string `json:"newPassword"`
+}

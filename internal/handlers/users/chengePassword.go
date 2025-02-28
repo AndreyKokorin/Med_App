@@ -3,6 +3,7 @@ package users
 import (
 	"awesomeProject/internal/Cash"
 	"awesomeProject/internal/database"
+	"awesomeProject/internal/models"
 	"awesomeProject/pkg/hash"
 	"errors"
 	"github.com/gin-gonic/gin"
@@ -11,14 +12,19 @@ import (
 	"net/http"
 )
 
-type changeData struct {
-	Code        string `json:"code"`
-	Email       string `json:"email"`
-	NewPassword string `json:"newPassword"`
-}
-
+// ChangePassword изменяет пароль пользователя
+// @Summary Изменение пароля пользователя
+// @Description Изменяет пароль пользователя на основе email, кода (отправленного на email) и нового пароля
+// @Tags Аутентификация
+// @Accept json
+// @Produce json
+// @Param changeData body models.СhangeData true "Данные для изменения пароля (email, code, newPassword)"
+// @Success 200 {object} map[string]string "Успешное изменение пароля"
+// @Failure 400 {object} map[string]string "Неверный формат запроса или неверный код"
+// @Failure 500 {object} map[string]string "Внутренняя ошибка сервера (например, ошибка базы данных, Redis или хеширования пароля)"
+// @Router /changePassword [post]
 func ChangePassword(ctx *gin.Context) {
-	var changeDataUser changeData
+	var changeDataUser models.СhangeData
 
 	if err := ctx.ShouldBindJSON(&changeDataUser); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"err": err.Error()})

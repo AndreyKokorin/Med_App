@@ -41,6 +41,16 @@ func AuthMiddleware(allowedRoles ...string) gin.HandlerFunc {
 			return
 		}
 
+		userID, ok := dataFromToken["user_id"].(int) // или "user_id" в зависимости от структуры токена
+		if !ok {
+			slog.Error("User ID not found in token or invalid format")
+			unauthorized(ctx)
+			return
+		}
+
+		ctx.Set("user_id", userID)
+		ctx.Set("role", userRole)
+
 		ctx.Next()
 	}
 }

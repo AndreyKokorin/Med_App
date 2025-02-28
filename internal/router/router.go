@@ -25,38 +25,34 @@ func SetupRouter(r *gin.Engine) {
 	adminGroup := r.Group("/admin", middleware.AuthMiddleware("admin"))
 	{
 		adminGroup.GET("/users", users.GetAllUsers)
-		adminGroup.DELETE("/users/:id", users.DeleteUser)
-		adminGroup.GET("/users/filter", users.GetFilterUsers) // Переименовано для согласованности
+		adminGroup.DELETE("/delete/user/:id", users.DeleteUser)
 	}
 
 	// Группа для докторов ("doctor") и пользователей ("user")
-	doctorGroup := r.Group("/doctor", middleware.AuthMiddleware("doctor", "user"))
+	doctorGroup := r.Group("/doctor", middleware.AuthMiddleware("doctor", "admin"))
 	{
 		doctorGroup.POST("/newRecord", med_records.NewRecord)
-		doctorGroup.GET("/user/:id/records", med_records.GetUserRecords)
 		doctorGroup.GET("/record/:id", med_records.GetRecordId)
 		doctorGroup.DELETE("/record/:id", med_records.DeleteRecord)
 		doctorGroup.POST("/addSchedules", schedules.AddSchedules)
+		doctorGroup.GET("/users/filter", users.GetFilterUsers)
 	}
 
 	// Группа с доступом для "user", "admin", "doctor"
-	sharedGroup := r.Group("/appointments", middleware.AuthMiddleware("user", "admin", "doctor"))
+	sharedGroup := r.Group("/allRoles", middleware.AuthMiddleware("user", "admin", "doctor"))
 	{
-		sharedGroup.POST("/add", appointments.AddAppointment)
-		sharedGroup.GET("/:id", appointments.GetAppointment)
-		sharedGroup.GET("/all", appointments.GetAllAppointment) // Переименовано
-		sharedGroup.GET("/user/:id", appointments.GetUserAppointments)
-		sharedGroup.PUT("/:id/time", appointments.UpdateAppointDate)
-		sharedGroup.DELETE("/:id", appointments.DeleteAppointment) // Замена PUT на DELETE
+		sharedGroup.POST("appointments/add", appointments.AddAppointment)
+		sharedGroup.GET("appointments/:id", appointments.GetAppointment)
+		sharedGroup.GET("appointments/all", appointments.GetAllAppointment)
+		sharedGroup.GET("appointments/user/:id", appointments.GetUserAppointments)
+		sharedGroup.PUT("appointments/:id/time", appointments.UpdateAppointDate)
+		sharedGroup.DELETE("appointments/:id", appointments.DeleteAppointment)
 		sharedGroup.GET("/doctors", users.GetAllDoctors)
-		sharedGroup.GET("/user/:id/info", users.GetUserID) // Разрешение конфликта
+		sharedGroup.GET("/user/:id/info", users.GetUserID)
 		sharedGroup.GET("/filter", appointments.GetFilterAppointments)
-	}
-
-	// Группа с доступом для "user", "admin"
-	adminUser := r.Group("/profile", middleware.AuthMiddleware("admin", "user")) // Переименована
-	{
-		adminUser.PUT("/userUpdate/:id", users.UpdateUser)
+		sharedGroup.PUT("/userUpdate/:id", users.UpdateUser)
+		sharedGroup.GET("/user/:id/records", med_records.GetUserRecords)
+		sharedGroup.GET("/profile", users.GetProfile)
 	}
 }
 

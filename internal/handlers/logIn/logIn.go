@@ -13,6 +13,18 @@ import (
 	"time"
 )
 
+// LogIn обрабатывает авторизацию пользователя
+// @Summary Вход пользователя
+// @Description Выполняет авторизацию пользователя на основе email и пароля, возвращает токены доступа и обновления
+// @Tags Аутентификация
+// @Accept json
+// @Produce json
+// @Param login body models.LogInUser true "Данные для входа (email, password)"
+// @Success 200 {object} map[string]string "Успешная авторизация с токенами доступа и обновления"
+// @Failure 400 {object} map[string]string "Неверный формат запроса"
+// @Failure 401 {object} map[string]string "Неверный email или пароль"
+// @Failure 500 {object} map[string]string "Внутренняя ошибка сервера (например, ошибка базы данных или генерации токенов)"
+// @Router /login [post]
 func LogIn(ctx *gin.Context) {
 	loginData, err := getLoginData(ctx)
 	if err != nil {
