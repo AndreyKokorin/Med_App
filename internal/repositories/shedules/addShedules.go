@@ -16,3 +16,7 @@ func AddShedules(shedule models.Schedule) (models.Schedule, error) {
 
 	return chedule, nil
 }
+
+func AddSlots() {
+
+}

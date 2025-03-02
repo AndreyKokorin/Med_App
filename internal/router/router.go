@@ -6,9 +6,12 @@ import (
 	"awesomeProject/internal/handlers/logUp"
 	"awesomeProject/internal/handlers/med_records"
 	"awesomeProject/internal/handlers/schedules"
+	"awesomeProject/internal/handlers/timeSlots"
 	"awesomeProject/internal/handlers/users"
 	"awesomeProject/internal/middleware"
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 	"net/http"
 )
 
@@ -20,6 +23,7 @@ func SetupRouter(r *gin.Engine) {
 	r.POST("/sendEmailCode", users.ChangePasswordSendEmail)
 	r.POST("/changePassword", users.ChangePassword)
 	r.POST("refresh", logIn.Refresh)
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	// Группа для администраторов (только "admin")
 	adminGroup := r.Group("/admin", middleware.AuthMiddleware("admin"))
@@ -42,17 +46,14 @@ func SetupRouter(r *gin.Engine) {
 	sharedGroup := r.Group("/allRoles", middleware.AuthMiddleware("user", "admin", "doctor"))
 	{
 		sharedGroup.POST("appointments/add", appointments.AddAppointment)
-		sharedGroup.GET("appointments/:id", appointments.GetAppointment)
-		sharedGroup.GET("appointments/all", appointments.GetAllAppointment)
-		sharedGroup.GET("appointments/user/:id", appointments.GetUserAppointments)
-		sharedGroup.PUT("appointments/:id/time", appointments.UpdateAppointDate)
-		sharedGroup.DELETE("appointments/:id", appointments.DeleteAppointment)
 		sharedGroup.GET("/doctors", users.GetAllDoctors)
 		sharedGroup.GET("/user/:id/info", users.GetUserID)
-		sharedGroup.GET("/filter", appointments.GetFilterAppointments)
 		sharedGroup.PUT("/userUpdate/:id", users.UpdateUser)
 		sharedGroup.GET("/user/:id/records", med_records.GetUserRecords)
 		sharedGroup.GET("/profile", users.GetProfile)
+		sharedGroup.GET("/doctor/:id/actualSlots", timeSlots.GetActualTimeSlotsForDoctor)
+		sharedGroup.PUT("appointments/:id/cancel", appointments.CancelAppointment)
+		sharedGroup.GET("/appointments", appointments.GetAppointmentDetails)
 	}
 }
 
@@ -68,3 +69,6 @@ func Cors(c *gin.Context) {
 
 	c.Next()
 }
+
+/*docker exec -it f7dd40fb36c6 psql -U postgres -d fitness_api
+ */

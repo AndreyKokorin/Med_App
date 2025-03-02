@@ -15,13 +15,21 @@ func ArchiveExpiredSchedules(db *sql.DB) error {
 		WHERE end_time < $1 AND status = 'active'
 	`
 
+	loc, err := time.LoadLocation("Asia/Almaty")
+	if err != nil {
+		log.Print("Ошибка загрузки временной зоны:", err)
+	}
+
+	// Получаем текущее время в Алматы
+	currentTime := time.Now().In(loc)
+
 	// Выполнение запроса
-	_, err := db.Exec(query, time.Now())
+	_, err = db.Exec(query, currentTime)
 	if err != nil {
 		log.Printf("Failed to update expired schedules: %v", err)
 		return err
 	}
-
+	slog.Info(currentTime.String())
 	slog.Info("Successfully updated expired schedules to archived")
 
 	return nil

@@ -7,13 +7,10 @@ import (
 	"awesomeProject/internal/database"
 	_ "awesomeProject/internal/handlers/logUp"
 	_ "awesomeProject/internal/handlers/users"
-	repositories "awesomeProject/internal/repositories/shedules"
 	"awesomeProject/internal/router"
+	"awesomeProject/pkg/helps"
 	"github.com/gin-gonic/gin"
-	swaggerFiles "github.com/swaggo/files"
-	ginSwagger "github.com/swaggo/gin-swagger"
 	"log"
-	"time"
 )
 
 // @title API для медицинского приложения
@@ -38,23 +35,12 @@ func main() {
 	//доключаем бд
 	database.DbInit(cfg)
 
-	// Запуск фоновой задачи для обновления записей в базе данных каждые 5 секунд
-	go func() {
-		ticker := time.NewTicker(5 * time.Minute)
-		defer ticker.Stop()
-
-		for range ticker.C {
-			// Вызов функции архивации
-			if err := repositories.ArchiveExpiredSchedules(database.DB); err != nil {
-				log.Printf("Error archiving expired schedules: %v", err)
-			}
-		}
-	}()
+	// Запуск фоновой задачи для обновления актуального расписания в базе
+	go helps.ArchiveSchedules()
 
 	// Настройка и запуск HTTP-сервера с Gin
 	r := gin.Default()
 	router.SetupRouter(r)
-	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	// Запуск сервера на указанном порту
 	err = r.Run(cfg.LOCAL_PORT)

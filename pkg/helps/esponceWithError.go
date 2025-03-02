@@ -6,6 +6,11 @@ import (
 )
 
 func RespWithError(ctx *gin.Context, statusCode int, message string, err error) {
-	slog.Error(message + ": " + err.Error())
-	ctx.JSON(statusCode, gin.H{"error": message})
+	if err != nil {
+		slog.Error(message + ": " + err.Error())
+		ctx.JSON(statusCode, gin.H{"error": message})
+		return
+	}
+
+	ctx.JSON(statusCode, gin.H{"message": message})
 }
