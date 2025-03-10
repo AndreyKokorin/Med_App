@@ -13,6 +13,21 @@ import (
 	"time"
 )
 
+// AddAppointment
+// @Summary Добавление записи на прием
+// @Description Позволяет пациенту записаться на прием к врачу, бронируя временной слот
+// @Tags appointments
+// @Security ApiKeyAuth
+// @Accept json
+// @Produce json
+// @Param appointment body models.Appointment true "Данные записи на прием"
+// @Success 201 {object} models.Appointment "Запись успешно создана"
+// @Failure 400 {object} map[string]string "Ошибка валидации данных"
+// @Failure 404 {object} map[string]string "Временной слот не найден"
+// @Failure 409 {object} map[string]string "Временной слот уже забронирован"
+// @Failure 410 {object} map[string]string "Временной слот уже прошел"
+// @Failure 500 {object} map[string]string "Ошибка сервера"
+// @Router /appointments [post]
 func AddAppointment(ctx *gin.Context) {
 	var apoint models.Appointment
 	if err := ctx.ShouldBindJSON(&apoint); err != nil {

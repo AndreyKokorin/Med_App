@@ -7,22 +7,19 @@ import (
 	"net/http"
 )
 
-// GetAllUsers возвращает список всех пользователей
-// @Summary Получение списка всех пользователей
-// @Description Возвращает список всех пользователей из базы данных (доступно только для роли admin)
-// @Tags Пользователи
-// @Accept json
-// @Produce json
+// GetAllUsers
+// @Summary Получение всех пользователей
+// @Description Возвращает список всех пользователей в системе
+// @Tags users
 // @Security ApiKeyAuth
+// @Produce json
 // @Success 200 {object} map[string][]models.User "Список пользователей"
-// @Failure 401 {object} map[string]string "Доступ запрещён: отсутствует или неверный токен авторизации"
-// @Failure 403 {object} map[string]string "Доступ запрещён: недостаточно прав (требуется роль admin)"
-// @Failure 500 {object} map[string]string "Внутренняя ошибка сервера (например, ошибка базы данных)"
-// @Router /admin/users [get]
+// @Failure 500 {object} map[string]string "Ошибка сервера"
+// @Router /shared/users [get]
 func GetAllUsers(ctx *gin.Context) {
 	var users []models.User
 
-	query := "SELECT id, name, age, email FROM users"
+	query := "SELECT id, email, age, name, roles, date_of_birth, phone_number, address, gender, avatar_url FROM users"
 
 	rows, err := database.DB.Query(query)
 
@@ -35,7 +32,7 @@ func GetAllUsers(ctx *gin.Context) {
 
 	for rows.Next() {
 		var user models.User
-		err := rows.Scan(&user.Id, &user.Name, &user.Age, &user.Email)
+		err := rows.Scan(&user.Id, &user.Email, &user.Age, &user.Name, &user.Roles, &user.DateOfBirth, &user.PhoneNumber, &user.Address, &user.Gender, &user.Avatar_url)
 
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

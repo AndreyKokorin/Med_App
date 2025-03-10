@@ -13,18 +13,18 @@ import (
 )
 
 // ChangePassword изменяет пароль пользователя
-// @Summary Изменение пароля пользователя
-// @Description Изменяет пароль пользователя на основе email, кода (отправленного на email) и нового пароля
+// @Summary Смена пароля
+// @Description Проверяет код из Redis и меняет пароль пользователя в базе данных
 // @Tags Аутентификация
 // @Accept json
 // @Produce json
-// @Param changeData body models.СhangeData true "Данные для изменения пароля (email, code, newPassword)"
-// @Success 200 {object} map[string]string "Успешное изменение пароля"
-// @Failure 400 {object} map[string]string "Неверный формат запроса или неверный код"
-// @Failure 500 {object} map[string]string "Внутренняя ошибка сервера (например, ошибка базы данных, Redis или хеширования пароля)"
-// @Router /changePassword [post]
+// @Param input body models.ChangeData true "Данные для смены пароля"
+// @Success 200 {object} map[string]string "Пароль успешно изменен"
+// @Failure 400 {object} map[string]string "Неверный код или некорректные данные"
+// @Failure 500 {object} map[string]string "Ошибка сервера или базы данных"
+// @Router /password/change [post]
 func ChangePassword(ctx *gin.Context) {
-	var changeDataUser models.СhangeData
+	var changeDataUser models.ChangeData
 
 	if err := ctx.ShouldBindJSON(&changeDataUser); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"err": err.Error()})

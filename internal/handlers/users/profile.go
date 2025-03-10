@@ -11,6 +11,17 @@ import (
 	"net/http"
 )
 
+// GetProfile
+// @Summary Получение профиля текущего пользователя
+// @Description Возвращает информацию о текущем пользователе на основе его токена
+// @Tags users
+// @Security ApiKeyAuth
+// @Produce json
+// @Success 200 {object} models.User "Данные пользователя"
+// @Failure 401 {object} map[string]string "Пользователь не авторизован"
+// @Failure 404 {object} map[string]string "Пользователь не найден"
+// @Failure 500 {object} map[string]string "Ошибка сервера"
+// @Router /shared/profile [get]
 func GetProfile(ctx *gin.Context) {
 	id, ok := ctx.Get("user_id")
 
@@ -21,7 +32,14 @@ func GetProfile(ctx *gin.Context) {
 
 	slog.Info("user_id: ", id)
 
-	user, err := repositories.GetUserId(database.DB, id.(int))
+	idInt, ok := id.(int)
+
+	if !ok {
+		helps.RespWithError(ctx, http.StatusUnauthorized, "user_id must be int", errors.New("user_id must be int"))
+		return
+	}
+
+	user, err := repositories.GetUserId(database.DB, idInt)
 
 	if err != nil {
 		status := http.StatusInternalServerError

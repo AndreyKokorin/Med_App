@@ -8,7 +8,7 @@ import (
 )
 
 func ArchiveSchedules() {
-	ticker := time.NewTicker(5 * time.Second)
+	ticker := time.NewTicker(time.Minute)
 	defer ticker.Stop()
 
 	for range ticker.C {

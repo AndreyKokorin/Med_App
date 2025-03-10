@@ -5,8 +5,6 @@ import (
 	"awesomeProject/internal/Cash"
 	"awesomeProject/internal/config"
 	"awesomeProject/internal/database"
-	_ "awesomeProject/internal/handlers/logUp"
-	_ "awesomeProject/internal/handlers/users"
 	"awesomeProject/internal/router"
 	"awesomeProject/pkg/helps"
 	"github.com/gin-gonic/gin"
@@ -17,7 +15,7 @@ import (
 // @version 1.0
 // @description API для медицинского приложения
 // @host localhost:8088
-// @BasePath /
+// @BasePath /api/v1
 // @securityDefinitions.apikey ApiKeyAuth
 // @in header
 // @name Authorization

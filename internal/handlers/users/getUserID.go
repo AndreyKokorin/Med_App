@@ -2,14 +2,27 @@ package users
 
 import (
 	"awesomeProject/internal/database"
-	"awesomeProject/internal/models"
+	repositories "awesomeProject/internal/repositories/user"
 	"database/sql"
 	"errors"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"strconv"
 	"strings"
 )
 
+// GetUserID
+// @Summary Получение информации о пользователе по ID
+// @Description Возвращает данные пользователя по его идентификатору
+// @Tags users
+// @Security ApiKeyAuth
+// @Produce json
+// @Param id path string true "Идентификатор пользователя"
+// @Success 200 {object} models.User "Данные пользователя"
+// @Failure 400 {object} map[string]string "ID не указан"
+// @Failure 404 {object} map[string]string "Пользователь не найден"
+// @Failure 500 {object} map[string]string "Ошибка сервера"
+// @Router /shared/users/{id} [get]
 func GetUserID(ctx *gin.Context) {
 	id := ctx.Param("id")
 
@@ -19,9 +32,9 @@ func GetUserID(ctx *gin.Context) {
 		return
 	}
 
-	var user models.User
-	query := "SELECT id, name, age, email,roles from users where id=$1"
-	err := database.DB.QueryRow(query, id).Scan(&user.Id, &user.Name, &user.Age, &user.Email, &user.Roles)
+	idInt, err := strconv.Atoi(id)
+	user, err := repositories.GetUserId(database.DB, idInt)
+
 	if errors.Is(err, sql.ErrNoRows) {
 		ctx.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
 		return

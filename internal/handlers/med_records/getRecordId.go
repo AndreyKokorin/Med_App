@@ -7,6 +7,18 @@ import (
 	"net/http"
 )
 
+// GetRecordId получает медицинскую запись по ID (для докторов и администраторов)
+// @Summary Получение медицинской записи
+// @Description Возвращает медицинскую запись по её ID (доступно докторам и администраторам)
+// @Tags medical_records
+// @Security ApiKeyAuth
+// @Produce json
+// @Param id path int true "ID медицинской записи"
+// @Success 200 {object} models.Record "Данные медицинской записи"
+// @Failure 400 {object} map[string]string "Ошибка валидации запроса"
+// @Failure 404 {object} map[string]string "Запись не найдена"
+// @Failure 500 {object} map[string]string "Ошибка сервера"
+// @Router /doctors/records/{id} [get]
 func GetRecordId(ctx *gin.Context) {
 	userid := ctx.Param("id")
 	if userid == "" {

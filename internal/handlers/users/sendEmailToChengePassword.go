@@ -15,18 +15,18 @@ import (
 	"time"
 )
 
-// ChangePasswordSendEmail отправляет код для восстановления пароля на указанный email
-// @Summary Отправка кода для восстановления пароля
-// @Description Отправляет пользователю уникальный код для восстановления пароля на указанный email
-// @Tags Аутентификация
+// ChangePasswordSendEmail отправляет код для смены пароля на email
+// @Summary Отправка кода для смены пароля
+// @Description Проверяет, существует ли email в базе данных, и отправляет на него код подтверждения для смены пароля
+// @Tags password
 // @Accept json
 // @Produce json
-// @Param email body models.To true "Email пользователя для отправки кода"
-// @Success 200 {object} map[string]string "Успешная отправка кода с ID отправленного сообщения"
-// @Failure 400 {object} map[string]string "Неверный формат запроса"
-// @Failure 404 {object} map[string]string "Пользователь с указанным email не найден"
-// @Failure 500 {object} map[string]string "Внутренняя ошибка сервера (например, ошибка базы данных, API email или Redis)"
-// @Router /sendEmailCode [post]
+// @Param input body models.To true "Email пользователя"
+// @Success 200 {object} map[string]string "ID отправленного письма"
+// @Failure 400 {object} map[string]string "Некорректный формат запроса"
+// @Failure 404 {object} map[string]string "Email не найден"
+// @Failure 500 {object} map[string]string "Ошибка сервера или email API"
+// @Router /auth/password/reset [post]
 func ChangePasswordSendEmail(ctx *gin.Context) {
 	var emailAddress models.To
 

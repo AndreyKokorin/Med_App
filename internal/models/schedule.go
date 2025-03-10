@@ -9,4 +9,5 @@ type Schedule struct {
 	EndTime     time.Time `json:"end_time"`
 	Capacity    int       `json:"capacity"`
 	BookedCount int       `json:"booked_count"`
+	Status      string    `json:"status"`
 }

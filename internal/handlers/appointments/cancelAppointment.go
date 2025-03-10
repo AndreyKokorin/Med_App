@@ -15,6 +15,19 @@ const (
 	AppointmentStatusCancelled = "Cancel"
 )
 
+// CancelAppointment
+// @Summary Отмена записи на прием
+// @Description Позволяет отменить запись на прием, освобождая временной слот
+// @Tags appointments
+// @Security ApiKeyAuth
+// @Accept json
+// @Produce json
+// @Param id path int true "ID записи на прием"
+// @Success 200 {object} map[string]interface{} "Запись успешно отменена"
+// @Failure 400 {object} map[string]string "Некорректный идентификатор записи"
+// @Failure 404 {object} map[string]string "Запись на прием или временной слот не найдены"
+// @Failure 500 {object} map[string]string "Ошибка сервера"
+// @Router /appointments/{id} [delete]
 func CancelAppointment(ctx *gin.Context) {
 	// Получаем ID записи из параметров запроса
 	appointmentID := ctx.Param("id")

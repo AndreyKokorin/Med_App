@@ -6,6 +6,17 @@ import (
 	"net/http"
 )
 
+// DeleteRecord удаляет медицинскую запись по ID (только для администраторов и врачей)
+// @Summary Удаление медицинской записи
+// @Description Удаляет медицинскую запись по её ID (доступно только администраторам и врачам)
+// @Tags medical_records
+// @Security ApiKeyAuth
+// @Param id path int true "ID медицинской записи"
+// @Success 200 {object} map[string]string "Медицинская запись удалена"
+// @Failure 400 {object} map[string]string "Ошибка валидации запроса"
+// @Failure 404 {object} map[string]string "Запись не найдена"
+// @Failure 500 {object} map[string]string "Ошибка сервера"
+// @Router /doctors/records/{id} [delete]
 func DeleteRecord(ctx *gin.Context) {
 	userId := ctx.Param("id")
 	if userId == "" {

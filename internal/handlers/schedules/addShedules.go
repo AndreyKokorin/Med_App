@@ -7,6 +7,18 @@ import (
 	"net/http"
 )
 
+// AddSchedules добавляет новое расписание (доступно врачам и администраторам)
+// @Summary Добавление расписания
+// @Description Добавляет новое расписание в систему (доступно врачам и администраторам)
+// @Tags schedules
+// @Security ApiKeyAuth
+// @Accept json
+// @Produce json
+// @Param schedule body models.Schedule true "Данные расписания"
+// @Success 201 {object} models.Schedule "Созданное расписание"
+// @Failure 400 {object} map[string]string "Ошибка валидации запроса"
+// @Failure 500 {object} map[string]string "Ошибка сервера"
+// @Router /schedules [post]
 func AddSchedules(ctx *gin.Context) {
 	schedule, err := getSchedules(ctx)
 	if err != nil {

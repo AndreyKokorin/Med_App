@@ -10,6 +10,19 @@ import (
 	"strconv"
 )
 
+// UpdateUser
+// @Summary Обновление информации о пользователе
+// @Description Позволяет обновить данные пользователя (имя, email, возраст)
+// @Tags users
+// @Security ApiKeyAuth
+// @Accept json
+// @Produce json
+// @Param id path int true "Идентификатор пользователя"
+// @Param user body models.UpdateUser true "Обновляемые данные пользователя"
+// @Success 200 {object} map[string]models.User "Обновленный пользователь"
+// @Failure 400 {object} map[string]string "Ошибка валидации данных"
+// @Failure 500 {object} map[string]string "Ошибка сервера"
+// @Router /shared/users/{id} [put]
 func UpdateUser(ctx *gin.Context) {
 	var userid, _ = strconv.Atoi(ctx.Param("id"))
 

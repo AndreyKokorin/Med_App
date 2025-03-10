@@ -8,6 +8,18 @@ import (
 	"net/http"
 )
 
+// NewRecord создаёт новую медицинскую запись (для докторов и администраторов)
+// @Summary Создание медицинской записи
+// @Description Добавляет новую медицинскую запись в базу данных (доступно докторам и администраторам)
+// @Tags medical_records
+// @Security ApiKeyAuth
+// @Accept json
+// @Produce json
+// @Param record body models.Record true "Данные медицинской записи"
+// @Success 201 {object} map[string]int "ID созданной записи"
+// @Failure 400 {object} map[string]string "Ошибка валидации"
+// @Failure 500 {object} map[string]string "Ошибка сервера"
+// @Router /doctors/records [post]
 func NewRecord(ctx *gin.Context) {
 	var newRecord models.Record
 	if err := ctx.ShouldBindJSON(&newRecord); err != nil {

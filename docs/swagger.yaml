@@ -1,9 +1,56 @@
-basePath: /
+basePath: /api/v1
 definitions:
   logIn.RefreshToken:
     properties:
       refresh:
         type: string
+    type: object
+  models.Appointment:
+    properties:
+      id:
+        type: integer
+      patient_id:
+        type: integer
+      schedule_id:
+        type: integer
+      slot_id:
+        type: integer
+      status:
+        default: Pending
+        type: string
+    required:
+    - patient_id
+    - schedule_id
+    - slot_id
+    type: object
+  models.ChangeData:
+    properties:
+      code:
+        type: string
+      email:
+        type: string
+      newPassword:
+        type: string
+    type: object
+  models.DoctorProfile:
+    properties:
+      education:
+        maxLength: 100
+        type: string
+      experience:
+        minimum: 0
+        type: integer
+      id:
+        type: integer
+      languages:
+        items:
+          type: string
+        type: array
+      specialty:
+        maxLength: 100
+        type: string
+      user_id:
+        type: integer
     type: object
   models.LogInUser:
     properties:
@@ -34,17 +81,97 @@ definitions:
     - name
     - password
     type: object
+  models.Record:
+    properties:
+      create_time:
+        type: string
+      diagnosis:
+        maxLength: 100
+        minLength: 1
+        type: string
+      doctor_id:
+        type: integer
+      id:
+        type: integer
+      patient_id:
+        type: integer
+      recomendation:
+        maxLength: 500
+        minLength: 1
+        type: string
+    required:
+    - diagnosis
+    - doctor_id
+    - patient_id
+    - recomendation
+    type: object
+  models.Schedule:
+    properties:
+      booked_count:
+        type: integer
+      capacity:
+        type: integer
+      doctor_id:
+        type: integer
+      end_time:
+        type: string
+      id:
+        type: integer
+      start_time:
+        type: string
+      status:
+        type: string
+    type: object
+  models.TimeSlot:
+    properties:
+      doctor_id:
+        type: integer
+      end_time:
+        type: string
+      id:
+        type: integer
+      start_time:
+        type: string
+      status:
+        type: string
+    required:
+    - doctor_id
+    - end_time
+    - id
+    - start_time
+    - status
+    type: object
   models.To:
     properties:
       email:
         description: Email получателя
         type: string
     type: object
-  models.User:
+  models.UpdateUser:
     properties:
       age:
         type: integer
       email:
+        type: string
+      name:
+        minLength: 2
+        type: string
+    type: object
+  models.User:
+    properties:
+      address:
+        type: string
+      age:
+        type: integer
+      avatar_url:
+        type: string
+      created_at:
+        type: string
+      date_of_birth:
+        type: string
+      email:
+        type: string
+      gender:
         type: string
       id:
         type: integer
@@ -52,17 +179,28 @@ definitions:
         type: string
       password:
         type: string
+      phone_number:
+        type: string
       roles:
         type: string
+      updated_at:
+        type: string
     type: object
-  models.СhangeData:
+  models.UserDetails:
     properties:
-      code:
+      address:
         type: string
-      email:
+      date_of_birth:
         type: string
-      newPassword:
+      gender:
         type: string
+      phone_number:
+        type: string
+    required:
+    - address
+    - date_of_birth
+    - gender
+    - phone_number
     type: object
 host: localhost:8088
 info:
@@ -71,215 +209,113 @@ info:
   title: API для медицинского приложения
   version: "1.0"
 paths:
-  /admin/delete/user/:id:
+  /appointments:
+    post:
+      consumes:
+      - application/json
+      description: Позволяет пациенту записаться на прием к врачу, бронируя временной
+        слот
+      parameters:
+      - description: Данные записи на прием
+        in: body
+        name: appointment
+        required: true
+        schema:
+          $ref: '#/definitions/models.Appointment'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Запись успешно создана
+          schema:
+            $ref: '#/definitions/models.Appointment'
+        "400":
+          description: Ошибка валидации данных
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Временной слот не найден
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: Временной слот уже забронирован
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "410":
+          description: Временной слот уже прошел
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Ошибка сервера
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Добавление записи на прием
+      tags:
+      - appointments
+  /appointments/{id}:
     delete:
       consumes:
       - application/json
-      description: Удаляет пользователя из базы данных по указанному ID (доступно
-        только для роли admin)
+      description: Позволяет отменить запись на прием, освобождая временной слот
       parameters:
-      - description: ID пользователя для удаления
+      - description: ID записи на прием
         in: path
         name: id
         required: true
-        type: string
+        type: integer
       produces:
       - application/json
       responses:
         "200":
-          description: Успешное удаление пользователя
+          description: Запись успешно отменена
           schema:
-            additionalProperties:
-              type: string
+            additionalProperties: true
             type: object
-        "401":
-          description: 'Доступ запрещён: отсутствует или неверный токен авторизации'
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "403":
-          description: 'Доступ запрещён: недостаточно прав (требуется роль admin)'
+        "400":
+          description: Некорректный идентификатор записи
           schema:
             additionalProperties:
               type: string
             type: object
         "404":
-          description: Пользователь не найден
+          description: Запись на прием или временной слот не найдены
           schema:
             additionalProperties:
               type: string
             type: object
         "500":
-          description: Внутренняя ошибка сервера (например, ошибка базы данных)
+          description: Ошибка сервера
           schema:
             additionalProperties:
               type: string
             type: object
       security:
       - ApiKeyAuth: []
-      summary: Удаление пользователя
+      summary: Отмена записи на прием
       tags:
-      - Пользователи
-  /admin/users:
-    get:
-      consumes:
-      - application/json
-      description: Возвращает список всех пользователей из базы данных (доступно только
-        для роли admin)
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Список пользователей
-          schema:
-            additionalProperties:
-              items:
-                $ref: '#/definitions/models.User'
-              type: array
-            type: object
-        "401":
-          description: 'Доступ запрещён: отсутствует или неверный токен авторизации'
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "403":
-          description: 'Доступ запрещён: недостаточно прав (требуется роль admin)'
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Внутренняя ошибка сервера (например, ошибка базы данных)
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      security:
-      - ApiKeyAuth: []
-      summary: Получение списка всех пользователей
-      tags:
-      - Пользователи
-  /api/v1/users:
-    get:
-      consumes:
-      - application/json
-      description: Возвращает список пользователей с фильтрацией по age, email, role
-        и пагинацией (доступно только для роли admin)
-      parameters:
-      - description: Возраст пользователя для фильтрации
-        in: query
-        name: age
-        type: string
-      - description: Email пользователя для фильтрации
-        in: query
-        name: email
-        type: string
-      - description: Роль пользователя для фильтрации
-        in: query
-        name: role
-        type: string
-      - description: Лимит записей (по умолчанию 10)
-        in: query
-        name: limit
-        type: string
-      - description: Смещение для пагинации (по умолчанию 0)
-        in: query
-        name: offset
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Список отфильтрованных пользователей
-          schema:
-            items:
-              $ref: '#/definitions/models.User'
-            type: array
-        "400":
-          description: Неверные параметры запроса (limit или offset)
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "401":
-          description: 'Доступ запрещён: отсутствует или неверный токен авторизации'
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "403":
-          description: 'Доступ запрещён: недостаточно прав (требуется роль admin)'
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "404":
-          description: Пользователи не найдены
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Внутренняя ошибка сервера (например, ошибка базы данных)
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      security:
-      - ApiKeyAuth: []
-      summary: Получение отфильтрованного списка пользователей
-      tags:
-      - Пользователи
-  /changePassword:
+      - appointments
+  /auth/login:
     post:
       consumes:
       - application/json
-      description: Изменяет пароль пользователя на основе email, кода (отправленного
-        на email) и нового пароля
+      description: Аутентифицирует пользователя по email и паролю, возвращает access
+        и refresh токены
       parameters:
-      - description: Данные для изменения пароля (email, code, newPassword)
+      - description: Данные для входа
         in: body
-        name: changeData
-        required: true
-        schema:
-          $ref: '#/definitions/models.%D0%A1hangeData'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Успешное изменение пароля
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "400":
-          description: Неверный формат запроса или неверный код
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Внутренняя ошибка сервера (например, ошибка базы данных, Redis
-            или хеширования пароля)
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Изменение пароля пользователя
-      tags:
-      - Аутентификация
-  /login:
-    post:
-      consumes:
-      - application/json
-      description: Выполняет авторизацию пользователя на основе email и пароля, возвращает
-        токены доступа и обновления
-      parameters:
-      - description: Данные для входа (email, password)
-        in: body
-        name: login
+        name: input
         required: true
         schema:
           $ref: '#/definitions/models.LogInUser'
@@ -287,13 +323,13 @@ paths:
       - application/json
       responses:
         "200":
-          description: Успешная авторизация с токенами доступа и обновления
+          description: Access и Refresh токены
           schema:
             additionalProperties:
               type: string
             type: object
         "400":
-          description: Неверный формат запроса
+          description: Некорректный формат запроса
           schema:
             additionalProperties:
               type: string
@@ -305,8 +341,7 @@ paths:
               type: string
             type: object
         "500":
-          description: Внутренняя ошибка сервера (например, ошибка базы данных или
-            генерации токенов)
+          description: Ошибка сервера
           schema:
             additionalProperties:
               type: string
@@ -314,99 +349,16 @@ paths:
       summary: Вход пользователя
       tags:
       - Аутентификация
-  /logup:
+  /auth/password/reset:
     post:
       consumes:
       - application/json
-      description: Создает нового пользователя в системе на основе предоставленных
-        данных (email, пароль, роль)
+      description: Проверяет, существует ли email в базе данных, и отправляет на него
+        код подтверждения для смены пароля
       parameters:
-      - description: Данные для регистрации пользователя (email, password, RoleToken)
+      - description: Email пользователя
         in: body
-        name: user
-        required: true
-        schema:
-          $ref: '#/definitions/models.LogUpUser'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Успешная регистрация (пустой ответ)
-        "400":
-          description: Неверный формат запроса или данные
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "409":
-          description: Пользователь с таким email уже зарегистрирован
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Внутренняя ошибка сервера (например, ошибка базы данных или
-            хеширования пароля)
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Регистрация нового пользователя
-      tags:
-      - Аутентификация
-  /refresh:
-    post:
-      consumes:
-      - application/json
-      description: Обновляет токен доступа, используя предоставленный refresh-токен,
-        и возвращает новый токен доступа
-      parameters:
-      - description: Refresh-токен для обновления доступа
-        in: body
-        name: refresh
-        required: true
-        schema:
-          $ref: '#/definitions/logIn.RefreshToken'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Успешное обновление с новым токеном доступа
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "400":
-          description: Неверный формат запроса или отсутствует refresh-токен
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "401":
-          description: Неверный или просроченный refresh-токен
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Внутренняя ошибка сервера (например, ошибка генерации токена)
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Обновление токена доступа
-      tags:
-      - Аутентификация
-  /sendEmailCode:
-    post:
-      consumes:
-      - application/json
-      description: Отправляет пользователю уникальный код для восстановления пароля
-        на указанный email
-      parameters:
-      - description: Email пользователя для отправки кода
-        in: body
-        name: email
+        name: input
         required: true
         schema:
           $ref: '#/definitions/models.To'
@@ -414,33 +366,918 @@ paths:
       - application/json
       responses:
         "200":
-          description: Успешная отправка кода с ID отправленного сообщения
+          description: ID отправленного письма
           schema:
             additionalProperties:
               type: string
             type: object
         "400":
-          description: Неверный формат запроса
+          description: Некорректный формат запроса
           schema:
             additionalProperties:
               type: string
             type: object
         "404":
-          description: Пользователь с указанным email не найден
+          description: Email не найден
           schema:
             additionalProperties:
               type: string
             type: object
         "500":
-          description: Внутренняя ошибка сервера (например, ошибка базы данных, API
-            email или Redis)
+          description: Ошибка сервера или email API
           schema:
             additionalProperties:
               type: string
             type: object
-      summary: Отправка кода для восстановления пароля
+      summary: Отправка кода для смены пароля
+      tags:
+      - password
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Создает нового пользователя в системе
+      parameters:
+      - description: Данные для регистрации
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/models.LogUpUser'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Пользователь успешно создан
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Некорректный формат запроса
+          schema:
+            additionalProperties: true
+            type: object
+        "409":
+          description: Пользователь с таким email уже существует
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Ошибка на стороне сервера
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Регистрация пользователя
       tags:
       - Аутентификация
+  /doctors/records:
+    post:
+      consumes:
+      - application/json
+      description: Добавляет новую медицинскую запись в базу данных (доступно докторам
+        и администраторам)
+      parameters:
+      - description: Данные медицинской записи
+        in: body
+        name: record
+        required: true
+        schema:
+          $ref: '#/definitions/models.Record'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: ID созданной записи
+          schema:
+            additionalProperties:
+              type: integer
+            type: object
+        "400":
+          description: Ошибка валидации
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Ошибка сервера
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Создание медицинской записи
+      tags:
+      - medical_records
+  /doctors/records/{id}:
+    delete:
+      description: Удаляет медицинскую запись по её ID (доступно только администраторам
+        и врачам)
+      parameters:
+      - description: ID медицинской записи
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: Медицинская запись удалена
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Ошибка валидации запроса
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Запись не найдена
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Ошибка сервера
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Удаление медицинской записи
+      tags:
+      - medical_records
+    get:
+      description: Возвращает медицинскую запись по её ID (доступно докторам и администраторам)
+      parameters:
+      - description: ID медицинской записи
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Данные медицинской записи
+          schema:
+            $ref: '#/definitions/models.Record'
+        "400":
+          description: Ошибка валидации запроса
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Запись не найдена
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Ошибка сервера
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Получение медицинской записи
+      tags:
+      - medical_records
+  /doctors/update:
+    put:
+      consumes:
+      - application/json
+      description: Позволяет врачу обновить свою информацию в системе
+      parameters:
+      - description: Новые данные врача
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/models.DoctorProfile'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Обновленные данные врача
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Ошибка валидации данных
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Пользователь не найден или не авторизован
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Ошибка сервера
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Обновление данных врача
+      tags:
+      - doctors
+  /password/change:
+    post:
+      consumes:
+      - application/json
+      description: Проверяет код из Redis и меняет пароль пользователя в базе данных
+      parameters:
+      - description: Данные для смены пароля
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/models.ChangeData'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Пароль успешно изменен
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Неверный код или некорректные данные
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Ошибка сервера или базы данных
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Смена пароля
+      tags:
+      - Аутентификация
+  /refresh:
+    post:
+      consumes:
+      - application/json
+      description: Принимает refresh-токен и возвращает новый access-токен
+      parameters:
+      - description: Refresh-токен
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/logIn.RefreshToken'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Новый access-токен
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Некорректный запрос
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Недействительный или истекший токен
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Ошибка сервера
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Обновление access-токена
+      tags:
+      - Аутентификация
+  /schedules:
+    post:
+      consumes:
+      - application/json
+      description: Добавляет новое расписание в систему (доступно врачам и администраторам)
+      parameters:
+      - description: Данные расписания
+        in: body
+        name: schedule
+        required: true
+        schema:
+          $ref: '#/definitions/models.Schedule'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Созданное расписание
+          schema:
+            $ref: '#/definitions/models.Schedule'
+        "400":
+          description: Ошибка валидации запроса
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Ошибка сервера
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Добавление расписания
+      tags:
+      - schedules
+  /schedules/filter:
+    get:
+      consumes:
+      - application/json
+      description: Позволяет получить список расписаний с возможностью фильтрации
+        по врачу, дате, времени и статусу
+      parameters:
+      - description: ID врача
+        in: query
+        name: doctor_id
+        type: integer
+      - description: Дата в формате YYYY-MM-DD
+        in: query
+        name: date
+        type: string
+      - description: Время в формате HH:MM:SS
+        in: query
+        name: time
+        type: string
+      - description: Статус расписания (active, archived)
+        in: query
+        name: status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Список найденных расписаний
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Ошибка валидации параметров
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Ошибка сервера
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Получение расписаний с фильтрацией
+      tags:
+      - schedules
+  /shared/doctors:
+    get:
+      description: Возвращает список всех пользователей с ролью "doctor"
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Список докторов
+          schema:
+            items:
+              $ref: '#/definitions/models.User'
+            type: array
+        "500":
+          description: Ошибка сервера
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Получение всех докторов
+      tags:
+      - doctors
+  /shared/doctors/{id}/profile:
+    get:
+      description: Возвращает профиль доктора по указанному ID
+      parameters:
+      - description: ID доктора
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Профиль доктора
+          schema:
+            additionalProperties:
+              $ref: '#/definitions/models.DoctorProfile'
+            type: object
+        "400":
+          description: Ошибка валидации
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Ошибка сервера
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Получение профиля доктора
+      tags:
+      - doctors
+  /shared/doctors/{id}/slots:
+    get:
+      description: Возвращает список актуальных временных слотов для указанного доктора
+      parameters:
+      - description: ID доктора
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Список доступных слотов
+          schema:
+            additionalProperties:
+              items:
+                $ref: '#/definitions/models.TimeSlot'
+              type: array
+            type: object
+        "400":
+          description: Ошибка валидации
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Ошибка сервера
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Получение доступных слотов доктора
+      tags:
+      - doctors
+  /shared/doctors/filter:
+    get:
+      description: Возвращает список докторов, отфильтрованных по указанным параметрам
+      parameters:
+      - description: Специальность доктора
+        in: query
+        name: specialty
+        type: string
+      - description: Опыт работы (лет)
+        in: query
+        name: experience
+        type: integer
+      - description: Языки, на которых говорит доктор
+        in: query
+        name: languages
+        type: string
+      - description: Пол доктора
+        in: query
+        name: gender
+        type: string
+      - description: Минимальный возраст доктора
+        in: query
+        name: min_age
+        type: integer
+      - description: Максимальный возраст доктора
+        in: query
+        name: max_age
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Список отфильтрованных докторов
+          schema:
+            items:
+              $ref: '#/definitions/models.User'
+            type: array
+        "400":
+          description: Ошибка валидации
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Ошибка сервера
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Получение списка докторов с фильтрацией
+      tags:
+      - doctors
+  /shared/profile:
+    get:
+      description: Возвращает информацию о текущем пользователе на основе его токена
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Данные пользователя
+          schema:
+            $ref: '#/definitions/models.User'
+        "401":
+          description: Пользователь не авторизован
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Пользователь не найден
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Ошибка сервера
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Получение профиля текущего пользователя
+      tags:
+      - users
+  /shared/users:
+    get:
+      description: Возвращает список всех пользователей в системе
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Список пользователей
+          schema:
+            additionalProperties:
+              items:
+                $ref: '#/definitions/models.User'
+              type: array
+            type: object
+        "500":
+          description: Ошибка сервера
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Получение всех пользователей
+      tags:
+      - users
+  /shared/users/{id}:
+    get:
+      description: Возвращает данные пользователя по его идентификатору
+      parameters:
+      - description: Идентификатор пользователя
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Данные пользователя
+          schema:
+            $ref: '#/definitions/models.User'
+        "400":
+          description: ID не указан
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Пользователь не найден
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Ошибка сервера
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Получение информации о пользователе по ID
+      tags:
+      - users
+    put:
+      consumes:
+      - application/json
+      description: Позволяет обновить данные пользователя (имя, email, возраст)
+      parameters:
+      - description: Идентификатор пользователя
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Обновляемые данные пользователя
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/models.UpdateUser'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Обновленный пользователь
+          schema:
+            additionalProperties:
+              $ref: '#/definitions/models.User'
+            type: object
+        "400":
+          description: Ошибка валидации данных
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Ошибка сервера
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Обновление информации о пользователе
+      tags:
+      - users
+  /shared/users/{id}/records:
+    get:
+      description: Возвращает список медицинских записей по ID пользователя
+      parameters:
+      - description: Идентификатор пользователя
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Список медицинских записей
+          schema:
+            items:
+              $ref: '#/definitions/models.Record'
+            type: array
+        "400":
+          description: Ошибка валидации данных
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Медицинские записи не найдены
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Ошибка сервера
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Получение медицинских записей пользователя
+      tags:
+      - medical_records
+  /shared/users/avatar:
+    put:
+      consumes:
+      - multipart/form-data
+      description: Загружает новый аватар для текущего пользователя
+      parameters:
+      - description: Файл изображения (jpg, jpeg, png)
+        in: formData
+        name: avatar
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Аватар успешно загружен
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Ошибка загрузки файла
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Пользователь не авторизован
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Ошибка сервера
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Загрузка аватара пользователя
+      tags:
+      - users
+  /shared/users/details:
+    post:
+      consumes:
+      - application/json
+      description: Обновляет дополнительные данные текущего пользователя
+      parameters:
+      - description: Дополнительные данные пользователя
+        in: body
+        name: details
+        required: true
+        schema:
+          $ref: '#/definitions/models.UserDetails'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Детали успешно обновлены
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Ошибка валидации данных
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Пользователь не авторизован
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Ошибка сервера
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Добавление дополнительных данных пользователя
+      tags:
+      - users
+  /users/{id}:
+    delete:
+      description: Удаляет пользователя по его ID. Доступно только администраторам.
+      parameters:
+      - description: ID пользователя
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: Пользователь удален
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Некорректный запрос
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Неавторизованный доступ
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Недостаточно прав
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Пользователь не найден
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Ошибка сервера
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Удаление пользователя
+      tags:
+      - users
+  /users/filter:
+    get:
+      consumes:
+      - application/json
+      description: Возвращает список пользователей с возможностью фильтрации по возрасту,
+        email и роли
+      parameters:
+      - description: Возраст пользователя
+        in: query
+        name: age
+        type: integer
+      - description: Email пользователя
+        in: query
+        name: email
+        type: string
+      - description: Роль пользователя
+        in: query
+        name: role
+        type: string
+      - description: Количество записей (по умолчанию 10)
+        in: query
+        name: limit
+        type: integer
+      - description: Смещение записей (по умолчанию 0)
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Список пользователей
+          schema:
+            items:
+              $ref: '#/definitions/models.User'
+            type: array
+        "400":
+          description: Ошибка валидации параметров
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Пользователи не найдены
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Ошибка сервера
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Фильтрация пользователей
+      tags:
+      - users
 securityDefinitions:
   ApiKeyAuth:
     description: Bearer токен авторизации (например, "Bearer <token>")

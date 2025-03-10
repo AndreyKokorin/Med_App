@@ -9,7 +9,21 @@ import (
 	"net/http"
 )
 
-// GetAppointmentDetails — эндпоинт для фильтрованного запроса к appointment_details
+//GetAppointmentDetails
+// @Summary Получение деталей записей на прием
+// @Description Позволяет получить подробную информацию о записях на прием с возможностью фильтрации
+// @Tags appointments
+// @Security ApiKeyAuth
+// @Accept json
+// @Produce json
+// @Param doctor_id query int false "ID врача"
+// @Param patient_id query int false "ID пациента"
+// @Param appointment_status query string false "Статус записи"
+// @Param slot_status query string false "Статус временного слота"
+// @Success 200 {object} map[string]interface{} "Список найденных записей"
+// @Failure 500 {object} map[string]string "Ошибка сервера"
+// @Router /appointments/details [get]
+
 func GetAppointmentDetails(ctx *gin.Context) {
 	// Извлекаем параметры запроса
 	doctorID := ctx.Query("doctor_id")

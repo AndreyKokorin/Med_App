@@ -4,12 +4,21 @@ import (
 	"awesomeProject/internal/database"
 	"awesomeProject/internal/models"
 	"awesomeProject/pkg/helps"
-	"database/sql"
-	"errors"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
 
+// GetActualTimeSlotsForDoctor
+// @Summary Получение доступных слотов доктора
+// @Description Возвращает список актуальных временных слотов для указанного доктора
+// @Tags doctors
+// @Security ApiKeyAuth
+// @Produce json
+// @Param id path int true "ID доктора"
+// @Success 200 {object} map[string][]models.TimeSlot "Список доступных слотов"
+// @Failure 400 {object} map[string]string "Ошибка валидации"
+// @Failure 500 {object} map[string]string "Ошибка сервера"
+// @Router /shared/doctors/{id}/slots [get]
 func GetActualTimeSlotsForDoctor(ctx *gin.Context) {
 	doctorId := ctx.Param("id")
 
@@ -32,10 +41,6 @@ func GetActualTimeSlotsForDoctor(ctx *gin.Context) {
 
 	rows, err := database.DB.Query(query, doctorId)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			helps.RespWithError(ctx, http.StatusNotFound, "No available time slots found for the doctor", nil)
-			return
-		}
 		helps.RespWithError(ctx, http.StatusInternalServerError, "Failed to retrieve time slots from database", err)
 		return
 	}
@@ -51,12 +56,15 @@ func GetActualTimeSlotsForDoctor(ctx *gin.Context) {
 		}
 		slots = append(slots, slot)
 	}
+	if len(slots) == 0 {
+		ctx.JSON(http.StatusOK, gin.H{"massage": "Not found slots", "data": []models.TimeSlot{}})
+		return
+	}
 
-	// Check for any errors that occurred during row iteration
 	if err = rows.Err(); err != nil {
 		helps.RespWithError(ctx, http.StatusInternalServerError, "Error occurred while processing time slots", err)
 		return
 	}
 
-	ctx.JSON(http.StatusOK, slots)
+	ctx.JSON(http.StatusOK, gin.H{"data": slots})
 }

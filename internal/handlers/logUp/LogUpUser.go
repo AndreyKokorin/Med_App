@@ -20,18 +20,18 @@ const (
 	doctor_token = "doctor_token"
 )
 
-// LogUpUser обрабатывает регистрацию нового пользователя
-// @Summary Регистрация нового пользователя
-// @Description Создает нового пользователя в системе на основе предоставленных данных (email, пароль, роль)
+// LogUpUser регистрирует нового пользователя
+// @Summary Регистрация пользователя
+// @Description Создает нового пользователя в системе
 // @Tags Аутентификация
 // @Accept json
 // @Produce json
-// @Param user body models.LogUpUser true "Данные для регистрации пользователя (email, password, RoleToken)"
-// @Success 201 {object} nil "Успешная регистрация (пустой ответ)"
-// @Failure 400 {object} map[string]string "Неверный формат запроса или данные"
-// @Failure 409 {object} map[string]string "Пользователь с таким email уже зарегистрирован"
-// @Failure 500 {object} map[string]string "Внутренняя ошибка сервера (например, ошибка базы данных или хеширования пароля)"
-// @Router /logup [post]
+// @Param input body models.LogUpUser true "Данные для регистрации"
+// @Success 201 {object} map[string]interface{} "Пользователь успешно создан"
+// @Failure 400 {object} map[string]interface{} "Некорректный формат запроса"
+// @Failure 409 {object} map[string]interface{} "Пользователь с таким email уже существует"
+// @Failure 500 {object} map[string]interface{} "Ошибка на стороне сервера"
+// @Router /auth/register [post]
 func LogUpUser(ctx *gin.Context) {
 	var logUpData models.LogUpUser
 
@@ -41,13 +41,11 @@ func LogUpUser(ctx *gin.Context) {
 		return
 	}
 
-	// Validate input data
 	if err := validate.ValidAndTrim(&logUpData); err != nil {
 		helps.RespWithError(ctx, http.StatusBadRequest, "Invalid request data", err)
 		return
 	}
 
-	// Determine user role
 	logUpData.Roles = determinateRole(logUpData.RoleToken)
 
 	// Hash password
@@ -57,7 +55,6 @@ func LogUpUser(ctx *gin.Context) {
 		return
 	}
 
-	// Check if user already exists
 	exists, err := repositories.UserExists(logUpData.Email, database.DB)
 	if err != nil {
 		helps.RespWithError(ctx, http.StatusInternalServerError, "Database access error", err)
@@ -68,7 +65,6 @@ func LogUpUser(ctx *gin.Context) {
 		return
 	}
 
-	// Create new user
 	err = repositories.NewUser(logUpData, database.DB, hashPassword)
 	if err != nil {
 		helps.RespWithError(ctx, http.StatusInternalServerError, "Failed to create user", err)
@@ -76,6 +72,8 @@ func LogUpUser(ctx *gin.Context) {
 	}
 
 	ctx.Status(http.StatusCreated)
+
+	ctx.JSON(http.StatusCreated, gin.H{"massage": "user created", "data": logUpData})
 }
 
 func determinateRole(TokenRole string) string {

@@ -10,25 +10,23 @@ import (
 	"strings"
 )
 
-// GetFilterUsers возвращает отфильтрованный список пользователей
-// @Summary Получение отфильтрованного списка пользователей
-// @Description Возвращает список пользователей с фильтрацией по age, email, role и пагинацией
-// @Tags Пользователи
+// GetFilterUsers получает список пользователей с фильтрацией (доступно врачам и администраторам)
+// @Summary Фильтрация пользователей
+// @Description Возвращает список пользователей с возможностью фильтрации по возрасту, email и роли
+// @Tags users
+// @Security ApiKeyAuth
 // @Accept json
 // @Produce json
-// @Param age query string false "Возраст пользователя для фильтрации"
-// @Param email query string false "Email пользователя для фильтрации"
-// @Param role query string false "Роль пользователя для фильтрации"
-// @Param limit query string false "Лимит записей (по умолчанию 10)"
-// @Param offset query string false "Смещение для пагинации (по умолчанию 0)"
-// @Security ApiKeyAuth
-// @Success 200 {array} models.User "Список отфильтрованных пользователей"
-// @Failure 400 {object} map[string]string "Неверные параметры запроса (limit или offset)"
-// @Failure 401 {object} map[string]string "Доступ запрещён: отсутствует или неверный токен авторизации"
-// @Failure 403 {object} map[string]string "Доступ запрещён: недостаточно прав (требуется роль admin)"
+// @Param age query int false "Возраст пользователя"
+// @Param email query string false "Email пользователя"
+// @Param role query string false "Роль пользователя"
+// @Param limit query int false "Количество записей (по умолчанию 10)"
+// @Param offset query int false "Смещение записей (по умолчанию 0)"
+// @Success 200 {array} models.User "Список пользователей"
+// @Failure 400 {object} map[string]string "Ошибка валидации параметров"
 // @Failure 404 {object} map[string]string "Пользователи не найдены"
-// @Failure 500 {object} map[string]string "Внутренняя ошибка сервера (например, ошибка базы данных)"
-// @Router admin/users/filter [get]
+// @Failure 500 {object} map[string]string "Ошибка сервера"
+// @Router /users/filter [get]
 func GetFilterUsers(ctx *gin.Context) {
 	ageQuery := ctx.Query("age")
 	emailQuery := ctx.Query("email")
