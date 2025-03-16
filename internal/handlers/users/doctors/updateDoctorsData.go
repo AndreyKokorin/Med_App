@@ -79,6 +79,11 @@ func buildQuery(doctorNewData models.DoctorProfile, userId int) (string, []inter
 		args = append(args, pq.Array(doctorNewData.Languages))
 		argsCount++
 	}
+	if doctorNewData.Specialty != "" {
+		parts = append(parts, (fmt.Sprintf("specialty=$%d", argsCount)))
+		args = append(args, doctorNewData.Specialty)
+		argsCount++
+	}
 
 	if len(parts) == 0 {
 		return "", nil

@@ -8,18 +8,7 @@ import (
 	"net/http"
 )
 
-// GetActualTimeSlotsForDoctor
-// @Summary Получение доступных слотов доктора
-// @Description Возвращает список актуальных временных слотов для указанного доктора
-// @Tags doctors
-// @Security ApiKeyAuth
-// @Produce json
-// @Param id path int true "ID доктора"
-// @Success 200 {object} map[string][]models.TimeSlot "Список доступных слотов"
-// @Failure 400 {object} map[string]string "Ошибка валидации"
-// @Failure 500 {object} map[string]string "Ошибка сервера"
-// @Router /shared/doctors/{id}/slots [get]
-func GetActualTimeSlotsForDoctor(ctx *gin.Context) {
+func GetTimeSlotsForDoctor(ctx *gin.Context) {
 	doctorId := ctx.Param("id")
 
 	if doctorId == "" {
@@ -37,7 +26,6 @@ func GetActualTimeSlotsForDoctor(ctx *gin.Context) {
     FROM schedules s
     INNER JOIN time_slots ts ON s.id = ts.schedule_id
     WHERE s.doctor_id = $1
-    AND s.status = 'active'
     ORDER BY ts.start_time`
 
 	rows, err := database.DB.Query(query, doctorId)

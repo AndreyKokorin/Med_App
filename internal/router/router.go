@@ -55,17 +55,18 @@ func SetupRouter(r *gin.Engine) {
 		// Маршруты для пользователей
 		sharedGroup.GET("/users", users.GetAllUsers)                      // Получение всех пользователей
 		sharedGroup.GET("/users/:id", users.GetUserID)                    // Получение информации о пользователе по ID
-		sharedGroup.PUT("/users/:id", users.UpdateUser)                   // Обновление информации о пользователе
+		sharedGroup.PUT("/users/update", users.UpdateUser)                // Обновление информации о пользователе
 		sharedGroup.GET("/users/:id/records", med_records.GetUserRecords) // Получение медицинских записей пользователя
 		sharedGroup.GET("/profile", users.GetProfile)                     // Получение профиля текущего пользователя
 		sharedGroup.POST("/users/details", users.AddDetailsData)          // Добавление дополнительных данных пользователя
 		sharedGroup.PUT("/users/avatar", users.UploadUserAvatar)          // Загрузка аватара пользователя
 
 		// Маршруты для докторов
-		sharedGroup.GET("/doctors", users.GetAllDoctors)                             // Получение всех докторов
-		sharedGroup.GET("/doctors/:id/slots", timeSlots.GetActualTimeSlotsForDoctor) // Получение доступных слотов для доктора
-		sharedGroup.GET("/doctors/:id/profile", doctors.GetDoctorProfile)            // Получение профиля доктора по ID
-		sharedGroup.GET("/doctors/filter", doctors.GetFilteredDoctors)               // Получение отфильтрованных докторов
+		sharedGroup.GET("/doctors", users.GetAllDoctors) // Получение всех докторов
+		sharedGroup.GET("/doctors/:id/slots", timeSlots.GetActualTimeSlotsForDoctor)
+		sharedGroup.GET("/doctors/:id/all/slots", timeSlots.GetTimeSlotsForDoctor)
+		sharedGroup.GET("/doctors/:id/profile", doctors.GetDoctorProfile) // Получение профиля доктора по ID
+		sharedGroup.GET("/doctors/filter", doctors.GetFilteredDoctors)    // Получение отфильтрованных докторов
 
 		// Маршруты для записей и расписаний
 		sharedGroup.POST("/appointments", appointments.AddAppointment)              // Создание новой записи на прием
@@ -76,8 +77,9 @@ func SetupRouter(r *gin.Engine) {
 }
 func Cors(c *gin.Context) {
 	c.Header("Access-Control-Allow-Origin", "*")
-	c.Header("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
-	c.Header("Access-Control-Allow-Headers", "Content-Type, Authorization")
+	c.Header("Access-Control-Allow-Methods", "POST, GET, PUT, OPTIONS")
+	c.Header("Access-Control-Allow-Headers", "Content-Type, Authorization, Accept")
+	c.Header("Access-Control-Allow-Credentials", "true")
 
 	if c.Request.Method == "OPTIONS" {
 		c.AbortWithStatus(http.StatusNoContent)

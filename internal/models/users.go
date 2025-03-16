@@ -12,7 +12,7 @@ type User struct {
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
 	Gender      string    `json:"gender"`
-	DateOfBirth time.Time `json:"date_of_birth"`
+	DateOfBirth string    `json:"date_of_birth"`
 	PhoneNumber string    `json:"phone_number"`
 	Address     string    `json:"address"`
 	Avatar_url  string    `json:"avatar_url"`
@@ -38,13 +38,15 @@ type LogInUser struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
-
 type UpdateUser struct {
-	Name  string `json:"name"  validate:"min=2"`
-	Email string `json:"email" validate:"email"`
-	Age   int    `json:"age"`
+	Name        string `json:"name" validate:"omitempty,min=2"`
+	Email       string `json:"email" validate:"omitempty,email"`
+	Age         int    `json:"age" validate:"omitempty,min=0"`
+	Gender      string `json:"gender" validate:"omitempty,oneof=male female other"`
+	DateOfBirth string `json:"date_of_birth" validate:"omitempty"`
+	PhoneNumber string `json:"phone_number" validate:"omitempty,min=10"`
+	Address     string `json:"address" validate:"omitempty,min=5"`
 }
-
 type ChangeData struct {
 	Code        string `json:"code"`
 	Email       string `json:"email"`

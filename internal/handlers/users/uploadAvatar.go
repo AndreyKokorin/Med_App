@@ -39,12 +39,9 @@ func UploadUserAvatar(ctx *gin.Context) {
 	}
 
 	ext := filepath.Ext(file.Filename)
-
 	var contentType string
 	switch ext {
-	case ".jpg":
-		contentType = "image/jpeg"
-	case ".jpeg":
+	case ".jpg", ".jpeg":
 		contentType = "image/jpeg"
 	case ".png":
 		contentType = "image/png"
@@ -61,7 +58,6 @@ func UploadUserAvatar(ctx *gin.Context) {
 		helps.RespWithError(ctx, http.StatusBadRequest, "error with opening file", err)
 		return
 	}
-
 	defer fileOpened.Close()
 
 	fileByte, err := io.ReadAll(fileOpened)
@@ -77,7 +73,6 @@ func UploadUserAvatar(ctx *gin.Context) {
 	}
 
 	query := "UPDATE users SET avatar_url = $1 WHERE id = $2"
-
 	res, err := database.DB.Exec(query, avatarUrl, userId)
 	if err != nil {
 		helps.RespWithError(ctx, http.StatusBadRequest, "error with adding url to db", err)
@@ -85,7 +80,6 @@ func UploadUserAvatar(ctx *gin.Context) {
 	}
 
 	RowsAffected, err := res.RowsAffected()
-
 	if err != nil {
 		helps.RespWithError(ctx, http.StatusBadRequest, "error with RowsAffected", err)
 		return

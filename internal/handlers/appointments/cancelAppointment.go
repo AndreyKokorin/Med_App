@@ -98,18 +98,17 @@ func CancelAppointment(ctx *gin.Context) {
 		return
 	}
 
-	// Обновляем статус записи на "Cancelled"
+	// Удаляем запись из таблицы appointments
 	res, err = tx.Exec(
-		"UPDATE appointments SET status = $1 WHERE id = $2",
-		AppointmentStatusCancelled,
+		"DELETE FROM appointments WHERE id = $1",
 		appointmentID,
 	)
 	if err != nil {
 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
-			helps.RespWithError(ctx, http.StatusInternalServerError, "Failed to rollback transaction after appointment update error", rollbackErr)
+			helps.RespWithError(ctx, http.StatusInternalServerError, "Failed to rollback transaction after appointment delete error", rollbackErr)
 			return
 		}
-		helps.RespWithError(ctx, http.StatusInternalServerError, "Failed to update appointment status", err)
+		helps.RespWithError(ctx, http.StatusInternalServerError, "Failed to delete appointment", err)
 		return
 	}
 
@@ -119,7 +118,7 @@ func CancelAppointment(ctx *gin.Context) {
 			helps.RespWithError(ctx, http.StatusInternalServerError, "Failed to rollback transaction after rows affected error", rollbackErr)
 			return
 		}
-		helps.RespWithError(ctx, http.StatusInternalServerError, "Failed to retrieve updated rows count for appointment", err)
+		helps.RespWithError(ctx, http.StatusInternalServerError, "Failed to retrieve deleted rows count for appointment", err)
 		slog.Error(err.Error())
 		return
 	}
@@ -129,7 +128,7 @@ func CancelAppointment(ctx *gin.Context) {
 			helps.RespWithError(ctx, http.StatusInternalServerError, "Failed to rollback transaction after no rows affected", rollbackErr)
 			return
 		}
-		helps.RespWithError(ctx, http.StatusNotFound, "Appointment not found or already cancelled", nil)
+		helps.RespWithError(ctx, http.StatusNotFound, "Appointment not found", nil)
 		return
 	}
 
@@ -141,7 +140,7 @@ func CancelAppointment(ctx *gin.Context) {
 
 	// Успешный ответ
 	ctx.JSON(http.StatusOK, gin.H{
-		"message": "Appointment cancelled successfully",
+		"message": "Appointment deleted successfully",
 		"id":      appointmentID,
 	})
 }
