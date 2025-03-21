@@ -30,6 +30,7 @@ func GetAppointmentDetails(ctx *gin.Context) {
 	patientID := ctx.Query("patient_id")
 	appointmentStatus := ctx.Query("appointment_status")
 	slotStatus := ctx.Query("slot_status")
+	scheduleId := ctx.Query("schedule_id")
 
 	// Формируем базовый запрос
 	query := "SELECT * FROM appointment_details WHERE 1=1"
@@ -55,6 +56,11 @@ func GetAppointmentDetails(ctx *gin.Context) {
 	if slotStatus != "" {
 		query += " AND slot_status = $" + fmt.Sprint(paramIndex)
 		args = append(args, slotStatus)
+		paramIndex++
+	}
+	if scheduleId != "" {
+		query += " AND schedule_id = $" + fmt.Sprint(paramIndex)
+		args = append(args, scheduleId)
 		paramIndex++
 	}
 

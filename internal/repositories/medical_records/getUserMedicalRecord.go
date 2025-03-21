@@ -18,6 +18,7 @@ func GetMedicalRecordsUserId(userId string) ([]models.FullMedicalRecord, error) 
 		m.diagnosis,
 		m.recomendation,
 		m.created_time
+
 	FROM Medical_Records m
 	JOIN Users p ON m.patient_id = p.id
 	JOIN Users d ON m.doctor_id = d.id

@@ -72,12 +72,13 @@ func SetupRouter(r *gin.Engine) {
 		sharedGroup.POST("/appointments", appointments.AddAppointment)              // Создание новой записи на прием
 		sharedGroup.PUT("/appointments/:id/cancel", appointments.CancelAppointment) // Отмена записи на прием
 		sharedGroup.GET("/appointments", appointments.GetAppointmentDetails)        // Получение деталей записи на прием
-		sharedGroup.GET("/schedules", schedules.GetFilterSchedules)                 // Получение отфильтрованных расписаний
+		sharedGroup.PATCH("/appointments/:id/:status", appointments.ChangeStatusAppointment)
+		sharedGroup.GET("/schedules", schedules.GetFilterSchedules) // Получение отфильтрованных расписаний
 	}
 }
 func Cors(c *gin.Context) {
 	c.Header("Access-Control-Allow-Origin", "*")
-	c.Header("Access-Control-Allow-Methods", "POST, GET, PUT, OPTIONS")
+	c.Header("Access-Control-Allow-Methods", "POST, GET, PUT, PATCH ,OPTIONS")
 	c.Header("Access-Control-Allow-Headers", "Content-Type, Authorization, Accept")
 	c.Header("Access-Control-Allow-Credentials", "true")
 

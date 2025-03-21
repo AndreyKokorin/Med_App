@@ -47,7 +47,7 @@ WHERE
 		&doctorProfile.Address,
 		&doctorProfile.Avatar_url,
 	)
-
+	
 	if err != nil {
 		return models.FullDoctorProfile{}, err
 	}

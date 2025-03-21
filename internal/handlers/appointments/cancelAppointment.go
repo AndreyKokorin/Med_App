@@ -46,10 +46,11 @@ func CancelAppointment(ctx *gin.Context) {
 
 	// Проверяем существование записи и получаем slot_id
 	var slotID int
+	var scheduleId int
 	err = tx.QueryRow(
-		"SELECT slot_id FROM appointments WHERE id = $1",
+		"SELECT slot_id, schedule_id FROM appointments WHERE id = $1",
 		appointmentID,
-	).Scan(&slotID)
+	).Scan(&slotID, &scheduleId)
 	if err != nil {
 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
 			helps.RespWithError(ctx, http.StatusInternalServerError, "Failed to rollback transaction after query error", rollbackErr)
@@ -113,6 +114,27 @@ func CancelAppointment(ctx *gin.Context) {
 	}
 
 	rowsAffected, err = res.RowsAffected()
+	if err != nil {
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			helps.RespWithError(ctx, http.StatusInternalServerError, "Failed to rollback transaction after rows affected error", rollbackErr)
+			return
+		}
+		helps.RespWithError(ctx, http.StatusInternalServerError, "Failed to retrieve deleted rows count for appointment", err)
+		slog.Error(err.Error())
+		return
+	}
+
+	if rowsAffected == 0 {
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			helps.RespWithError(ctx, http.StatusInternalServerError, "Failed to rollback transaction after no rows affected", rollbackErr)
+			return
+		}
+		helps.RespWithError(ctx, http.StatusNotFound, "Appointment not found", nil)
+		return
+	}
+
+	//уменьшаем количество записавшихся в schedules
+	res, err = tx.Exec("UPDATE schedules SET booked_slots=booked_slots - 1 where id = $1 ", scheduleId)
 	if err != nil {
 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
 			helps.RespWithError(ctx, http.StatusInternalServerError, "Failed to rollback transaction after rows affected error", rollbackErr)

@@ -5,6 +5,7 @@ import (
 	"awesomeProject/internal/models"
 	"awesomeProject/pkg/validate"
 	"github.com/gin-gonic/gin"
+	"log/slog"
 	"net/http"
 )
 
@@ -33,13 +34,14 @@ func NewRecord(ctx *gin.Context) {
 		return
 	}
 
-	var recordId int
-	query := "INSERT INTO Medical_Records(patient_id, doctor_id, diagnosis, recomendation) VALUES ($1,$2,$3,$4) RETURNING id"
-	err = database.DB.QueryRow(query, newRecord.Patient_id, newRecord.Doctor_id, newRecord.Diagnosis, newRecord.Recomendation).Scan(&recordId)
+	slog.Info("Record obj:", newRecord)
+
+	query := "INSERT INTO Medical_Records(patient_id, doctor_id, diagnosis, recomendation, anamnesis, timeslot_id) VALUES ($1,$2,$3,$4, $5) RETURNING id"
+	err = database.DB.QueryRow(query, newRecord.Patient_id, newRecord.Doctor_id, newRecord.Diagnosis, newRecord.Recomendation, newRecord.Anamnesis, newRecord.TimeSlotsId).Scan(&newRecord.Id)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, gin.H{"recordId": recordId})
+	ctx.JSON(http.StatusCreated, gin.H{"record": newRecord, "massage": "Med record created successfully!"})
 }
