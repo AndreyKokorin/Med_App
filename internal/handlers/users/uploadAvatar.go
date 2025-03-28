@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"io"
+	"log/slog"
 	"net/http"
 	"path/filepath"
 	"time"
@@ -66,11 +67,16 @@ func UploadUserAvatar(ctx *gin.Context) {
 		return
 	}
 
+	slog.Info("avatar-img-name: " + filePath)
+	slog.Info("avatar-img-name: " + filePath)
+
 	avatarUrl, err := byteScale.UploadFile(fileByte, contentType, filePath)
 	if err != nil {
 		helps.RespWithError(ctx, http.StatusBadRequest, "error uploading file to api", err)
 		return
 	}
+
+	slog.Info("contentType: " + contentType)
 
 	query := "UPDATE users SET avatar_url = $1 WHERE id = $2"
 	res, err := database.DB.Exec(query, avatarUrl, userId)

@@ -2,6 +2,8 @@ package router
 
 import (
 	"awesomeProject/internal/handlers/appointments"
+	"awesomeProject/internal/handlers/directions"
+	"awesomeProject/internal/handlers/directions_results"
 	"awesomeProject/internal/handlers/logIn"
 	"awesomeProject/internal/handlers/logUp"
 	"awesomeProject/internal/handlers/med_records"
@@ -47,6 +49,8 @@ func SetupRouter(r *gin.Engine) {
 		doctorGroup.POST("/schedules", schedules.AddSchedules)       // Добавление расписания
 		doctorGroup.GET("/users/filter", users.GetFilterUsers)       // Получение отфильтрованных пользователей
 		doctorGroup.PUT("/update", doctors.UpdateDoctorsData)        // Обновление данных доктора
+		doctorGroup.POST("/direction", directions.CreateDirectionsHandler)
+		doctorGroup.POST("/direction/result", directions_results.CreateResultHandler)
 	}
 
 	// Группа с доступом для всех ролей ("user", "admin", "doctor")
@@ -74,6 +78,14 @@ func SetupRouter(r *gin.Engine) {
 		sharedGroup.GET("/appointments", appointments.GetAppointmentDetails)        // Получение деталей записи на прием
 		sharedGroup.PATCH("/appointments/:id/:status", appointments.ChangeStatusAppointment)
 		sharedGroup.GET("/schedules", schedules.GetFilterSchedules) // Получение отфильтрованных расписаний
+
+		// Маршруты для направлений
+		sharedGroup.GET("/direction/:id", directions.GetDirectionId)
+		sharedGroup.GET("/directions", directions.GetFilterDirections)
+
+		//Маршруты обследований
+		sharedGroup.GET("/directions/:id", directions.GetDirectionId)
+
 	}
 }
 func Cors(c *gin.Context) {

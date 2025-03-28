@@ -19,7 +19,7 @@ func UploadFile(file []byte, contentType string, fileName string) (string, error
 		Timeout: 10 * time.Second,
 	}
 
-	url := "https://api.bytescale.com/v2/accounts/G22nhbT/uploads/binary?fileName=" + fileName
+	url := "https://api.bytescale.com/v2/accounts/W23MT5m/uploads/binary?fileName=" + fileName
 	token := fmt.Sprintf("Bearer %s", os.Getenv("TOKEN_BYTE_SCALE"))
 
 	req, err := http.NewRequest(http.MethodPost, url, bytes.NewReader(file))
